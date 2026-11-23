@@ -1120,8 +1120,8 @@ function marksFor(l,n){
     const M=computeMoves(n,true), g=TG.indexOf(l), S=M.tS[g], el=M.eT[g], rel=M.relTg[g].rel, out={};
     // descensos compensatorios previstos: los que bajan de Segunda Federación a esta comunidad
     const M2=computeMoves(n,false), ins=[...M2.relS,...M2.loseSR].filter(t=>comOf(t)===g+1).length;
-    const up=S.filter(t=>M2.upT.includes(t)).length; let nc=Math.max(0,ins-up-rel.length); const comp=[];
-    for(let i=S.length-1;i>=0&&nc>0;i--){const t=S[i];if(rel.includes(t)||M2.upT.includes(t))continue;comp.push(t);nc--;}
+    const rel2=M2.relTg[g].rel, up=S.filter(t=>M2.upT.includes(t)).length; let nc=Math.max(0,ins-up-rel2.length+3); const comp=[...rel2];
+    for(let i=S.length-1;i>=0&&nc>0;i--){const t=S[i];if(rel2.includes(t)||M2.upT.includes(t))continue;comp.push(t);nc--;}
     S.forEach((id,i)=>{
       const posZ=i>=S.length-3?'R':i===0?'W':i<=4?'P':'N', k=el.indexOf(id);
       let z=rel.includes(id)||comp.includes(id)?'R':k===0?'W':k>=1&&k<=4?'P':'N';
@@ -2442,7 +2442,9 @@ function advanceSeason(){
     const S=M.tS[g], rel=M.relTg[g].rel.slice(), ins=tIn.filter(t=>comOf(t)===g+1);
     let cur=S.filter(t=>!M.upT.includes(t)&&!rel.includes(t)).concat(ins);
     const comp=[];
-    while(cur.length>18){const c=[...S].reverse().find(t=>cur.includes(t)&&!ins.includes(t)); if(!c)break; cur=cur.filter(x=>x!==c); comp.push(c); justDown.add(c);}
+    // de la regional suben SIEMPRE 3 (o más si hacen falta). Si así se pasa de 18, descensos compensatorios en Tercera
+    const nR=Math.max(3,18-cur.length);
+    while(cur.length+nR>18){const c=[...S].reverse().find(t=>cur.includes(t)&&!ins.includes(t)); if(!c)break; cur=cur.filter(x=>x!==c); comp.push(c); justDown.add(c);}
     const old=(POOL[g+1]||[]).filter(t=>!cur.includes(t)&&!(POOLB[g+1]||[]).includes(t)), upR=[];
     const okR=t=>!FIL[t]||M.lvlN(FIL[t])<=4;
     while(cur.length<18){
@@ -2473,6 +2475,18 @@ function advanceSeason(){
   HIST.push(H);
   const oldGr={}; ['f1','f2',...SG].forEach(l=>CS[l].teams.forEach(t=>oldGr[t]=l));
   const gF=geoSplit([...G1,...G2],REF_F,20), gS=geoSplit(sgFlat,REF_S,18);
+  // regla real: de los 4 que bajan de Segunda, 2 van a cada grupo de Primera Federación
+  for(let it=0;it<4;it++){
+    const r0=gF[0].filter(t=>M.relSD.includes(t)), r1=gF[1].filter(t=>M.relSD.includes(t));
+    if(Math.abs(r0.length-r1.length)<=1&&!(r0.length+r1.length===4&&r0.length!==2))break;
+    const [ov,un]=r0.length>r1.length?[0,1]:[1,0];
+    const cen=g=>{const m=gF[g];return[m.reduce((s,t)=>s+GEO[t][0],0)/m.length,m.reduce((s,t)=>s+GEO[t][1],0)/m.length];};
+    const cO=cen(ov),cU=cen(un); let best=null;
+    for(const a of gF[ov].filter(t=>M.relSD.includes(t)))for(const b of gF[un].filter(t=>!M.relSD.includes(t))){
+      const cost=geoD(GEO[a],cU)+geoD(GEO[b],cO)-geoD(GEO[a],cO)-geoD(GEO[b],cU); if(!best||cost<best[0])best=[cost,a,b];}
+    if(!best)break;
+    gF[ov]=gF[ov].map(t=>t===best[1]?best[2]:t); gF[un]=gF[un].map(t=>t===best[2]?best[1]:t);
+  }
   const NT={pd:newPD,sd:newSD,f1:gF[0],f2:gF[1]}; SG.forEach((l,i)=>NT[l]=gS[i]); TG.forEach(l=>NT[l]=newT[l]);
   const moveG=[];
   ['f1','f2',...SG].forEach(l=>{const nt=l==='f1'?gF[0]:l==='f2'?gF[1]:gS[SG.indexOf(l)];nt.forEach(t=>{const o=oldGr[t];if(o&&o!==l&&isSG(o)===isSG(l))moveG.push(`${nmT(t)}: ${LGC[o].g||'Grupo '+(SG.indexOf(o)+1)} → ${LGC[l].g||'Grupo '+(SG.indexOf(l)+1)}`);});});

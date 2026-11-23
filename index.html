@@ -823,7 +823,7 @@ const S4_0=['sql','acn','btb','mij','ato','lin','mbl','rec','luc','sea','est','x
 const S5_0=['aba','tal','cvs','gua','cnq','apa','seg','tor','rav','vlp','sal','num','gtb','atc','ssr','alca','nav','rmcc'];
 // Filiales -> primer equipo (un filial nunca puede estar en la categoría de su primer equipo ni en una superior)
 const FIL={rsb:'rso',clt:'cel',bca:'bar',atb:'ath',dfa:'dep',rmc:'rma',atl:'atm',vib:'vil',eibb:'eib',alvb:'ala',osab:'osa',espb:'esp',girb:'gir',ovv:'ovi',lgb:'lgr',rcb:'ray',eli:'elc',vme:'val',mlb:'mlc',btb:'bet',sea:'sev',lpb:'lpa',teb:'ten',gtb:'get',atc:'atl',vlp:'vld',cstb:'cas',rmcc:'rmc'};
-Object.assign(FIL,T3F); FIL.rcb='rac';
+Object.assign(FIL,T3F); FIL.rcb='rac'; FIL.mim='mur'; FIL.t9_rudmeli='t9_udmelil';   // Real Murcia Imperial y UD Melilla B
 const SG=['s1','s2','s3','s4','s5'], TG=Array.from({length:18},(_,i)=>'t'+(i+1)), RG=['r6n','r6s'];   // RG: ligas regionales (de momento Lliga Comunitat)
 const LGS=['pd','sd','f1','f2',...SG,...TG,...RG], POK=['po','fp','sp','sr','tp','rp6'], ALLC=[...LGS,...POK];
 const isPO=l=>POK.includes(l), isSG=l=>SG.includes(l), isTG=l=>TG.includes(l), isRG=l=>RG.includes(l);
@@ -1143,7 +1143,7 @@ function marksFor(l,n){
     for(let i=S.length-1;i>=0&&nc>0;i--){const t=S[i];if(rel2.includes(t)||M2.upT.includes(t))continue;comp.push(t);nc--;}
     S.forEach((id,i)=>{
       const posZ=i>=S.length-3?'R':i===0?'W':i<=4?'P':'N', k=el.indexOf(id);
-      let z=rel.includes(id)||comp.includes(id)?'R':k===0?'W':k>=1&&k<=4?'P':'N';
+      let z=comp.includes(id)?'R':k===0?'W':k>=1&&k<=4?'P':'N';
       out[id]={col:ZC[z],arr:ZR[z]>ZR[posZ]?'u':ZR[z]<ZR[posZ]?'d':''};
     });
     return out;
